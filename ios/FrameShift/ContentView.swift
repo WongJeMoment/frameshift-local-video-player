@@ -2,7 +2,7 @@ import SwiftUI
 import UniformTypeIdentifiers
 
 private let accent = Color(red: 201 / 255, green: 1, blue: 92 / 255)
-private let background = Color(red: 16 / 255, green: 17 / 255, blue: 22 / 255)
+private let pageBackground = Color(red: 16 / 255, green: 17 / 255, blue: 22 / 255)
 
 struct ContentView: View {
     @StateObject private var model = PlayerStore()
@@ -59,7 +59,7 @@ struct ContentView: View {
                 }
             }
         }
-        .background(background)
+        .background(pageBackground)
         .fileImporter(isPresented: $showingImporter,
                       allowedContentTypes: [.movie, .video],
                       allowsMultipleSelection: false) { result in

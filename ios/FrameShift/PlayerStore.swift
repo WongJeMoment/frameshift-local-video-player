@@ -28,13 +28,15 @@ final class PlayerStore: ObservableObject {
     init() {
         let interval = CMTime(seconds: 0.2, preferredTimescale: 600)
         timeObserver = player.addPeriodicTimeObserver(forInterval: interval, queue: .main) { [weak self] time in
-            guard let self else { return }
-            let current = time.seconds
-            let total = self.player.currentItem?.duration.seconds ?? 0
-            self.currentTime = current.isFinite ? max(0, current) : 0
-            self.duration = total.isFinite ? max(0, total) : 0
-            if let error = self.player.currentItem?.error {
-                self.errorMessage = error.localizedDescription
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                let current = time.seconds
+                let total = self.player.currentItem?.duration.seconds ?? 0
+                self.currentTime = current.isFinite ? max(0, current) : 0
+                self.duration = total.isFinite ? max(0, total) : 0
+                if let error = self.player.currentItem?.error {
+                    self.errorMessage = error.localizedDescription
+                }
             }
         }
         endObserver = NotificationCenter.default.addObserver(
@@ -42,7 +44,7 @@ final class PlayerStore: ObservableObject {
             object: nil,
             queue: .main
         ) { [weak self] _ in
-            self?.isPlaying = false
+            Task { @MainActor [weak self] in self?.isPlaying = false }
         }
     }
 
