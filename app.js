@@ -19,18 +19,31 @@ let toastTimeout;
 let dragDepth = 0;
 let hideControlsTimeout;
 let suppressVideoClick = false;
+let pointerInBottom = false;
+
+function isInBottomZone(event) {
+  const rect = playerCard.getBoundingClientRect();
+  const zoneHeight = Math.max(100, Math.min(180, playerChrome.offsetHeight + 12));
+  return event.clientX >= rect.left && event.clientX <= rect.right
+    && event.clientY >= rect.bottom - zoneHeight && event.clientY <= rect.bottom;
+}
+
+function hideControlsSoon() {
+  if (!video.src || pointerInBottom || !speedMenu.hidden || playerChrome.querySelector(':focus-visible') || hideControlsTimeout) return;
+  hideControlsTimeout = setTimeout(() => {
+    hideControlsTimeout = null;
+    if (!pointerInBottom && speedMenu.hidden && !playerChrome.querySelector(':focus-visible')) {
+      playerCard.classList.add('chrome-hidden');
+    }
+  }, 1000);
+}
 
 function showControls() {
   if (!video.src) return;
   playerCard.classList.remove('chrome-hidden');
   clearTimeout(hideControlsTimeout);
-  if (!video.paused && speedMenu.hidden) {
-    hideControlsTimeout = setTimeout(() => {
-      if (!playerChrome.querySelector(':focus-visible') && speedMenu.hidden && !video.paused) {
-        playerCard.classList.add('chrome-hidden');
-      }
-    }, 2800);
-  }
+  hideControlsTimeout = null;
+  hideControlsSoon();
 }
 
 function showToast(message) {
@@ -75,7 +88,7 @@ function openFile(file) {
   dropZone.hidden = true;
   playerChrome.hidden = false;
   playerCard.classList.add('has-video');
-  showControls();
+  playerCard.classList.add('chrome-hidden');
   $('#center-play').hidden = false;
   $('#file-name').textContent = file.name;
   $('#file-name').title = file.name;
@@ -96,11 +109,8 @@ function syncPlayState() {
   $('#play-button').setAttribute('aria-label', playing ? '暂停' : '播放');
   $('#center-play').setAttribute('aria-label', playing ? '暂停视频' : '播放视频');
   $('#center-play').hidden = playing || !video.src;
-  if (playing) showControls();
-  else {
-    clearTimeout(hideControlsTimeout);
-    playerCard.classList.remove('chrome-hidden');
-  }
+  if (pointerInBottom) showControls();
+  else hideControlsSoon();
 }
 
 async function togglePlay() {
@@ -223,14 +233,42 @@ video.addEventListener('click', () => {
   togglePlay();
 });
 video.addEventListener('pointerdown', event => {
-  if (event.pointerType !== 'mouse' && playerCard.classList.contains('chrome-hidden')) {
+  if (event.pointerType !== 'mouse' && isInBottomZone(event) && playerCard.classList.contains('chrome-hidden')) {
     suppressVideoClick = true;
+  }
+});
+playerCard.addEventListener('pointermove', event => {
+  if (event.pointerType === 'touch') return;
+  if (isInBottomZone(event)) {
+    pointerInBottom = true;
+    showControls();
+  } else {
+    pointerInBottom = false;
+    hideControlsSoon();
+  }
+});
+playerCard.addEventListener('pointerdown', event => {
+  if (event.pointerType !== 'mouse' && isInBottomZone(event)) {
+    pointerInBottom = true;
     showControls();
   }
 });
-playerCard.addEventListener('pointermove', showControls);
+playerCard.addEventListener('pointerleave', () => {
+  pointerInBottom = false;
+  hideControlsSoon();
+});
+playerCard.addEventListener('pointerup', event => {
+  if (event.pointerType !== 'mouse') {
+    pointerInBottom = false;
+    hideControlsSoon();
+  }
+});
+playerCard.addEventListener('pointercancel', () => {
+  pointerInBottom = false;
+  hideControlsSoon();
+});
 playerChrome.addEventListener('focusin', showControls);
-playerChrome.addEventListener('focusout', () => setTimeout(showControls, 0));
+playerChrome.addEventListener('focusout', () => setTimeout(hideControlsSoon, 0));
 $('#back-button').addEventListener('click', () => skip(-10));
 $('#forward-button').addEventListener('click', () => skip(10));
 seek.addEventListener('input', () => {
@@ -273,6 +311,7 @@ $('#fullscreen-button').addEventListener('click', async () => {
 
 document.addEventListener('keydown', event => {
   if (!video.src) return;
+  if (event.key === 'Tab') showControls();
   if (event.key === 'Escape') { closeSpeedMenu(); return; }
   if (['INPUT', 'BUTTON'].includes(document.activeElement?.tagName)) return;
   if (event.code === 'Space') { event.preventDefault(); togglePlay(); }
