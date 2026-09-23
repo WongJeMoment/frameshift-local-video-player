@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#101116" />
+    <meta name="description" content="拖入本地视频，即刻在平板或笔记本上自由调速播放。视频仅在你的浏览器中打开。" />
+    <title>本地视频播放器 · 自由调速</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="styles.css" />
+    <script src="app.js" defer></script>
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="site-header">
+        <a class="brand" href="./" aria-label="本地播放器首页">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 32 32" fill="none"><rect x="1" y="1" width="30" height="30" rx="9" stroke="currentColor" stroke-width="2"/><path d="m13 9 11 7-11 7V9Z" fill="currentColor"/></svg>
+          </span>
+          <span>FRAME<span class="brand-accent">/</span>SHIFT</span>
+        </a>
+        <span class="header-note"><span class="status-dot"></span> 纯本地播放 · 无需上传</span>
+      </header>
+
+      <main>
+        <section class="intro" aria-labelledby="page-title">
+          <div class="eyebrow"><span class="eyebrow-line"></span> YOUR VIDEO, YOUR PACE</div>
+          <h1 id="page-title">每一帧，<em>按你的节奏。</em></h1>
+          <p>把视频拖进来，或者点击选择文件。慢放看细节，快放抓重点。</p>
+        </section>
+
+        <section class="player-card" id="player-card" aria-label="视频播放器">
+          <div class="screen" id="screen">
+            <video id="video" playsinline preload="metadata"></video>
+            <div class="drop-zone" id="drop-zone">
+              <div class="drop-content">
+                <div class="drop-icon" aria-hidden="true">
+                  <svg viewBox="0 0 64 64" fill="none"><rect x="8" y="14" width="48" height="36" rx="7" stroke="currentColor" stroke-width="2"/><path d="m28 24 15 8-15 8V24Z" fill="currentColor"/><path d="M18 8h28" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                </div>
+                <span class="drop-kicker">READY WHEN YOU ARE</span>
+                <h2>拖拽视频到这里</h2>
+                <p>或从设备中选择一个视频文件</p>
+                <button class="primary-button" id="choose-button" type="button">
+                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 16V4m0 0L7.5 8.5M12 4l4.5 4.5M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  选择本地视频
+                </button>
+                <span class="format-note">支持浏览器可播放的 MP4、WebM、MOV 等格式</span>
+              </div>
+            </div>
+            <div class="drag-overlay" id="drag-overlay" aria-hidden="true"><div><span>松开，开始播放</span><small>视频只在此设备中打开</small></div></div>
+            <button class="center-play" id="center-play" type="button" aria-label="播放视频" hidden>
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="m8 5 12 7-12 7V5Z"/></svg>
+            </button>
+            <div class="toast" id="toast" role="status" aria-live="polite"></div>
+          </div>
+
+          <div class="control-panel" id="control-panel" hidden>
+            <div class="timeline-row">
+              <span class="time" id="current-time">00:00</span>
+              <input id="seek" class="range seek" type="range" min="0" max="1000" value="0" aria-label="播放进度" />
+              <span class="time" id="duration">00:00</span>
+            </div>
+            <div class="control-row">
+              <div class="control-left">
+                <button class="icon-button" id="play-button" type="button" aria-label="播放">
+                  <svg class="play-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="m7 4 14 8-14 8V4Z"/></svg>
+                  <svg class="pause-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="5" y="4" width="5" height="16" rx="1"/><rect x="14" y="4" width="5" height="16" rx="1"/></svg>
+                </button>
+                <button class="icon-button skip-button" id="back-button" type="button" aria-label="后退 10 秒">
+                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 9a8 8 0 1 1-.2 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M4 4v5h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><text x="7" y="16" fill="currentColor" font-size="7" font-weight="700">10</text></svg>
+                </button>
+                <button class="icon-button skip-button" id="forward-button" type="button" aria-label="快进 10 秒">
+                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 9a8 8 0 1 0 .2 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M20 4v5h-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><text x="7" y="16" fill="currentColor" font-size="7" font-weight="700">10</text></svg>
+                </button>
+                <div class="volume-group">
+                  <button class="icon-button" id="mute-button" type="button" aria-label="静音">
+                    <svg class="volume-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M16 9a4 4 0 0 1 0 6m2.5-9a8 8 0 0 1 0 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+                    <svg class="muted-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="m17 9 5 6m0-6-5 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+                  </button>
+                  <input id="volume" class="range volume" type="range" min="0" max="1" step="0.01" value="1" aria-label="音量" />
+                </div>
+              </div>
+              <div class="control-right">
+                <button class="speed-button" id="speed-button" type="button" aria-label="播放速度：1 倍" aria-haspopup="true" aria-expanded="false"><span class="speed-label">速度</span><strong id="speed-value">1×</strong><svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="m4 6 4 4 4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+                <button class="icon-button pip-button" id="pip-button" type="button" aria-label="画中画" hidden><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="2.5" y="4.5" width="19" height="15" rx="2" stroke="currentColor" stroke-width="1.8"/><rect x="11" y="11" width="8" height="6" rx="1" fill="currentColor"/></svg></button>
+                <button class="icon-button" id="fullscreen-button" type="button" aria-label="全屏">
+                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 9V4h5m6 0h5v5M4 15v5h5m6 0h5v-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
+              </div>
+            </div>
+            <div class="speed-menu" id="speed-menu" role="group" aria-label="选择播放速度" hidden>
+              <div class="menu-heading">播放速度 <span>0.25× — 4×</span></div>
+              <div class="speed-options" id="speed-options"></div>
+              <div class="custom-speed"><label for="custom-speed">精细调整 <strong id="custom-speed-value">1.00×</strong></label><input class="range" id="custom-speed" type="range" min="0.25" max="4" step="0.05" value="1" aria-label="自定义播放速度" /></div>
+            </div>
+          </div>
+          <div class="file-bar" id="file-bar" hidden>
+            <div class="file-details"><span class="file-indicator"></span><span id="file-name"></span><span class="file-size" id="file-size"></span></div>
+            <button class="change-button" id="change-button" type="button">更换视频 <span aria-hidden="true">↗</span></button>
+          </div>
+        </section>
+
+        <div class="below-player">
+          <div class="privacy-note"><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M10 2 3 5v4.7c0 4.3 3 7.1 7 8.3 4-1.2 7-4 7-8.3V5l-7-3Z" stroke="currentColor" stroke-width="1.5"/><path d="m7 10 2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span>你的视频不会离开这台设备</span></div>
+          <div class="shortcuts">快捷键：<kbd>空格</kbd> 暂停/播放 <kbd>←</kbd><kbd>→</kbd> 快退/快进</div>
+        </div>
+      </main>
+      <footer><span>FRAME/SHIFT</span><span>播放，自由一点。</span></footer>
+    </div>
+    <input id="file-input" type="file" accept="video/*,.mp4,.m4v,.mov,.webm,.ogv,.mkv" hidden />
+  </body>
+</html>
