@@ -6,9 +6,10 @@
 
 需要一台 Mac、Xcode、自己的 Apple Account 和 iPad。无需付费开发者会员。
 
-1. 在 Mac 上安装 Xcode 和 [XcodeGen](https://github.com/yonaskolb/XcodeGen)。
-2. 在本目录运行 `xcodegen generate`，打开生成的 `FrameShift.xcodeproj`。
-3. 在 Xcode 的 Signing & Capabilities 中选自己的 Personal Team，并将 Bundle Identifier 改为属于自己的唯一名称。
-4. 用线缆或无线配对 iPad，在 Xcode 选择该 iPad，点 Run。按系统提示信任设备或启用开发者模式。
+1. 在 Mac 上安装 Xcode，打开本目录的 `FrameShift.xcodeproj`。
+2. 在 Xcode 的 Signing & Capabilities 中选自己的 Personal Team，并将 Bundle Identifier 改为属于自己的唯一名称。
+3. 用线缆或无线配对 iPad，在 Xcode 选择该 iPad，点 Run。按系统提示信任设备或启用开发者模式。
+
+项目也包含 `project.yml`。如果要重新生成 Xcode 项目，可安装 [XcodeGen](https://github.com/yonaskolb/XcodeGen) 并在本目录运行 `xcodegen generate`。
 
 免费 Personal Team 的描述文件有效期为 7 天，过期后需要通过 Xcode 重新安装。它不能生成可从网站直接分发安装的正式应用包。网站上的一键下载入口必须等到有合适的签名与发布渠道后才能接通。
