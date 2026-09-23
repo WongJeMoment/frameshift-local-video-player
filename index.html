@@ -54,7 +54,8 @@
             <div class="toast" id="toast" role="status" aria-live="polite"></div>
           </div>
 
-          <div class="control-panel" id="control-panel" hidden>
+          <div class="player-chrome" id="player-chrome" hidden>
+          <div class="control-panel" id="control-panel">
             <div class="timeline-row">
               <span class="time" id="current-time">00:00</span>
               <input id="seek" class="range seek" type="range" min="0" max="1000" value="0" aria-label="播放进度" />
@@ -94,15 +95,16 @@
               <div class="custom-speed"><label for="custom-speed">精细调整 <strong id="custom-speed-value">1.00×</strong></label><input class="range" id="custom-speed" type="range" min="0.25" max="4" step="0.05" value="1" aria-label="自定义播放速度" /></div>
             </div>
           </div>
-          <div class="file-bar" id="file-bar" hidden>
+          <div class="file-bar" id="file-bar">
             <div class="file-details"><span class="file-indicator"></span><span id="file-name"></span><span class="file-size" id="file-size"></span></div>
             <button class="change-button" id="change-button" type="button">更换视频 <span aria-hidden="true">↗</span></button>
+          </div>
           </div>
         </section>
 
         <div class="below-player">
           <div class="privacy-note"><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M10 2 3 5v4.7c0 4.3 3 7.1 7 8.3 4-1.2 7-4 7-8.3V5l-7-3Z" stroke="currentColor" stroke-width="1.5"/><path d="m7 10 2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span>你的视频不会离开这台设备</span></div>
-          <div class="shortcuts">快捷键：<kbd>空格</kbd> 暂停/播放 <kbd>←</kbd><kbd>→</kbd> 快退/快进</div>
+          <div class="shortcuts">快捷键：<kbd>空格</kbd> 暂停/播放 <kbd>←</kbd><kbd>→</kbd> 每次快退/快进 1 秒</div>
         </div>
       </main>
       <footer><span>FRAME/SHIFT</span><span>播放，自由一点。</span></footer>

@@ -5,8 +5,7 @@ const screen = $('#screen');
 const fileInput = $('#file-input');
 const dropZone = $('#drop-zone');
 const dragOverlay = $('#drag-overlay');
-const controlPanel = $('#control-panel');
-const fileBar = $('#file-bar');
+const playerChrome = $('#player-chrome');
 const playerCard = $('#player-card');
 const seek = $('#seek');
 const volume = $('#volume');
@@ -18,6 +17,21 @@ const speeds = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2, 2.5, 3, 4];
 let objectUrl = null;
 let toastTimeout;
 let dragDepth = 0;
+let hideControlsTimeout;
+let suppressVideoClick = false;
+
+function showControls() {
+  if (!video.src) return;
+  playerCard.classList.remove('chrome-hidden');
+  clearTimeout(hideControlsTimeout);
+  if (!video.paused && speedMenu.hidden) {
+    hideControlsTimeout = setTimeout(() => {
+      if (!playerChrome.querySelector(':focus-visible') && speedMenu.hidden && !video.paused) {
+        playerCard.classList.add('chrome-hidden');
+      }
+    }, 2800);
+  }
+}
 
 function showToast(message) {
   const toast = $('#toast');
@@ -59,8 +73,9 @@ function openFile(file) {
   video.load();
   video.playbackRate = Number(customSpeed.value);
   dropZone.hidden = true;
-  controlPanel.hidden = false;
-  fileBar.hidden = false;
+  playerChrome.hidden = false;
+  playerCard.classList.add('has-video');
+  showControls();
   $('#center-play').hidden = false;
   $('#file-name').textContent = file.name;
   $('#file-name').title = file.name;
@@ -81,6 +96,11 @@ function syncPlayState() {
   $('#play-button').setAttribute('aria-label', playing ? '暂停' : '播放');
   $('#center-play').setAttribute('aria-label', playing ? '暂停视频' : '播放视频');
   $('#center-play').hidden = playing || !video.src;
+  if (playing) showControls();
+  else {
+    clearTimeout(hideControlsTimeout);
+    playerCard.classList.remove('chrome-hidden');
+  }
 }
 
 async function togglePlay() {
@@ -121,6 +141,7 @@ function setSpeed(rate) {
 function closeSpeedMenu() {
   speedMenu.hidden = true;
   speedButton.setAttribute('aria-expanded', 'false');
+  showControls();
 }
 
 speeds.forEach(speed => {
@@ -194,7 +215,22 @@ video.addEventListener('volumechange', () => {
 
 $('#play-button').addEventListener('click', togglePlay);
 $('#center-play').addEventListener('click', togglePlay);
-video.addEventListener('click', togglePlay);
+video.addEventListener('click', () => {
+  if (suppressVideoClick) {
+    suppressVideoClick = false;
+    return;
+  }
+  togglePlay();
+});
+video.addEventListener('pointerdown', event => {
+  if (event.pointerType !== 'mouse' && playerCard.classList.contains('chrome-hidden')) {
+    suppressVideoClick = true;
+    showControls();
+  }
+});
+playerCard.addEventListener('pointermove', showControls);
+playerChrome.addEventListener('focusin', showControls);
+playerChrome.addEventListener('focusout', () => setTimeout(showControls, 0));
 $('#back-button').addEventListener('click', () => skip(-10));
 $('#forward-button').addEventListener('click', () => skip(10));
 seek.addEventListener('input', () => {
@@ -210,6 +246,7 @@ $('#mute-button').addEventListener('click', () => { video.muted = !video.muted; 
 speedButton.addEventListener('click', () => {
   speedMenu.hidden = !speedMenu.hidden;
   speedButton.setAttribute('aria-expanded', String(!speedMenu.hidden));
+  showControls();
 });
 customSpeed.addEventListener('input', () => setSpeed(customSpeed.value));
 document.addEventListener('pointerdown', event => {
@@ -239,8 +276,8 @@ document.addEventListener('keydown', event => {
   if (event.key === 'Escape') { closeSpeedMenu(); return; }
   if (['INPUT', 'BUTTON'].includes(document.activeElement?.tagName)) return;
   if (event.code === 'Space') { event.preventDefault(); togglePlay(); }
-  else if (event.key === 'ArrowLeft') { event.preventDefault(); skip(-10); }
-  else if (event.key === 'ArrowRight') { event.preventDefault(); skip(10); }
+  else if (event.key === 'ArrowLeft') { event.preventDefault(); skip(-1); }
+  else if (event.key === 'ArrowRight') { event.preventDefault(); skip(1); }
   else if (event.key.toLowerCase() === 'm') video.muted = !video.muted;
   else if (event.key.toLowerCase() === 'f') $('#fullscreen-button').click();
 });
