@@ -35,7 +35,7 @@ function hideControlsSoon() {
     if (!pointerInBottom && speedMenu.hidden && !playerChrome.querySelector(':focus-visible')) {
       playerCard.classList.add('chrome-hidden');
     }
-  }, 1000);
+  }, 300);
 }
 
 function showControls() {
